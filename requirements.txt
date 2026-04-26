@@ -1,0 +1,18 @@
+# MCP server
+mcp>=1.0.0
+
+# Async runtime
+anyio>=4.0.0
+
+# Local SQLite async driver (SQLite variant — no cloud required)
+aiosqlite>=0.20.0
+
+# Azure SDK (Cosmos variant — DefaultAzureCredential only, no connection strings)
+azure-cosmos>=4.7.0
+azure-identity>=1.16.0
+azure-keyvault-secrets>=4.8.0
+azure-monitor-opentelemetry>=1.6.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
