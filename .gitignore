@@ -11,7 +11,7 @@ build/
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
-mcp_db.sqlite
+*.sqlite
 *.db
 *.log
 .DS_Store
