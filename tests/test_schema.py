@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 import asyncio
 import aiosqlite
 import os
@@ -9,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 DB_PATH = "test_mcp_db.sqlite"
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def clean_db():
     """Remove test DB before and after each test."""
     if os.path.exists(DB_PATH):
