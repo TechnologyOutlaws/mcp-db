@@ -1,5 +1,9 @@
 # MCP-DB — Claude Code Standing Instructions
 
+**Owner:** Technology Outlaws LLC
+**Author:** Jason Tesso <jt@technologyoutlaws.com>
+**Repo:** MCP-DB
+
 ## Project Identity
 - Repo: C:\mcp-db (ADO: TechnologyOutlaws/MCP-DB)
 - Purpose: Standalone reference implementation of the DB-backed Compound
