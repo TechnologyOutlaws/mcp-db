@@ -11,11 +11,11 @@ for the terms governing use of the source code.
 ## Patent Notice
 
 The Compound Query Tier architecture implemented in this repository is
-covered under a United States patent application pending before the
-United States Patent and Trademark Office (USPTO), filed by Technology
-Outlaws LLC.
+covered under United States provisional patent application **No. 64/013,702**,
+filed **2026-03-23** with the United States Patent and Trademark Office
+(USPTO) by Technology Outlaws LLC.
 
-The pending application covers, without limitation, the following novel
+The application covers, without limitation, the following novel
 combinations:
 
 1. A Compound Query Tier embedded inside Model Context Protocol (MCP)

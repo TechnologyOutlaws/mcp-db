@@ -15,3 +15,10 @@ build/
 *.db
 *.log
 .DS_Store
+
+# Claude Code working state — skill memory, session settings, build logs
+.claude/
+mcp-db-COMPLETE.md
+mcp-db-prompt-*-complete.md
+mcp-db-scaffold-complete.md
+mcp-db-verification-report.md

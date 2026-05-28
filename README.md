@@ -44,8 +44,8 @@ full `assembled_sources` provenance manifest.
 ## Quick Start
 
 ```bash
-git clone https://dev.azure.com/jb0551/TechnologyOutlaws/_git/MCP-DB
-cd MCP-DB
+git clone https://github.com/TechnologyOutlaws/mcp-db.git
+cd mcp-db
 python -m venv .venv
 .venv\Scripts\activate          # Windows
 # source .venv/bin/activate     # Linux/macOS
