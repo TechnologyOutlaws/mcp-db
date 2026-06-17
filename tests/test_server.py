@@ -16,11 +16,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 class TestServerToolRegistration:
 
     @pytest.mark.asyncio
-    async def test_list_tools_returns_six(self):
+    async def test_list_tools_returns_seven(self):
         import server
 
         tools = await server.list_tools()
-        assert len(tools) == 6
+        assert len(tools) == 7
 
     @pytest.mark.asyncio
     async def test_all_tool_names_registered(self):
@@ -35,6 +35,7 @@ class TestServerToolRegistration:
             "get_records",
             "get_recent_events",
             "get_knowledge_hits",
+            "query_graph",
         }
         assert names == expected
 

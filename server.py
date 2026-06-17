@@ -121,6 +121,21 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         )
         return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
 
+    elif name == "query_graph":
+        from shared.tools.compound.query_graph import query_graph
+
+        result = await query_graph(
+            query_vector=arguments["query_vector"],
+            top_k=arguments.get("top_k", 5),
+            depth=arguments.get("depth", 1),
+            edge_types=arguments.get("edge_types"),
+            node_type=arguments.get("node_type"),
+            domain=arguments.get("domain", "general"),
+            session_id=arguments.get("session_id", "anonymous"),
+            db=_db,
+        )
+        return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
+
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
@@ -236,6 +251,41 @@ async def list_tools() -> list[types.Tool]:
                     "session_id": {"type": "string", "default": "anonymous"},
                 },
                 "required": ["query"],
+            },
+        ),
+        types.Tool(
+            name="query_graph",
+            description=(
+                "Vector-graph compound tool. One call: finds the most "
+                "semantically similar seed node by vector similarity, then "
+                "traverses its graph neighborhood to the requested depth. "
+                "Use instead of chaining a vector search with separate graph "
+                "traversal calls. Produces one attestation record covering "
+                "the vector hits and the assembled subgraph."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query_vector": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Query embedding vector",
+                    },
+                    "top_k": {"type": "integer", "default": 5},
+                    "depth": {"type": "integer", "default": 1},
+                    "edge_types": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Restrict traversal to these edge types",
+                    },
+                    "node_type": {
+                        "type": "string",
+                        "description": "Restrict vector search to this node type",
+                    },
+                    "domain": {"type": "string", "default": "general"},
+                    "session_id": {"type": "string", "default": "anonymous"},
+                },
+                "required": ["query_vector"],
             },
         ),
     ]

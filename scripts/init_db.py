@@ -65,6 +65,27 @@ CREATE TABLE IF NOT EXISTS knowledge_base (
 CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts
     USING fts5(id, domain, content, citation,
                content='knowledge_base', content_rowid='rowid');
+
+CREATE TABLE IF NOT EXISTS graph_node (
+    node_id    TEXT PRIMARY KEY,
+    node_type  TEXT NOT NULL,
+    properties TEXT NOT NULL DEFAULT '{}',
+    embedding  TEXT NOT NULL DEFAULT '[]'
+);
+
+CREATE TABLE IF NOT EXISTS graph_edge (
+    source_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    edge_type TEXT NOT NULL,
+    weight    REAL NOT NULL DEFAULT 1.0,
+    PRIMARY KEY (source_id, target_id, edge_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_graph_edge_source
+    ON graph_edge (source_id);
+
+CREATE INDEX IF NOT EXISTS idx_graph_node_type
+    ON graph_node (node_type);
 """
 
 TRIGGERS = """
