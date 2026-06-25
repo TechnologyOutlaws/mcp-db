@@ -12,13 +12,17 @@ from azure.cosmos.aio import CosmosClient
 from azure.identity.aio import DefaultAzureCredential
 from azure.core.exceptions import ResourceNotFoundError
 
+from shared.vector_graph import VectorGraphDB
+
 CONTAINER_VIEW = "materialized_intelligence_view"
 CONTAINER_ROUTES = "intent_routing_table"
 CONTAINER_ATTESTATION = "compound_attestation_log"
 CONTAINER_KNOWLEDGE = "knowledge_base"
+CONTAINER_GRAPH_NODE = "graph_node"
+CONTAINER_GRAPH_EDGE = "graph_edge"
 
 
-class CosmosDB:
+class CosmosDB(VectorGraphDB):
 
     def __init__(
         self,
@@ -97,6 +101,139 @@ class CosmosDB:
         ):
             items.append(item)
         return items
+
+    # ── Vector-Graph methods (VectorGraphDB) ──────────────────────────
+    #
+    # Cosmos NoSQL native vector search via VectorDistance() ORDER BY, which
+    # requires a vector indexing policy on the graph_node container's
+    # /embedding path (provisioned out-of-band, same as the existing
+    # containers). graph_traverse walks the graph_edge container with a
+    # bounded BFS, one query per frontier hop — mirroring how the existing
+    # methods issue query_items / read_item against their containers.
+
+    async def upsert_node(
+        self,
+        node_id: str,
+        node_type: str,
+        properties: dict,
+        embedding: list[float],
+    ) -> None:
+        doc = {
+            "id": node_id,
+            "node_id": node_id,
+            "node_type": node_type,
+            "properties": properties or {},
+            "embedding": embedding or [],
+        }
+        await self._container(CONTAINER_GRAPH_NODE).upsert_item(doc)
+
+    async def upsert_edge(
+        self,
+        source_id: str,
+        target_id: str,
+        edge_type: str,
+        weight: float = 1.0,
+    ) -> None:
+        edge_id = f"{source_id}|{edge_type}|{target_id}"
+        doc = {
+            "id": edge_id,
+            "source_id": source_id,
+            "target_id": target_id,
+            "edge_type": edge_type,
+            "weight": weight,
+        }
+        await self._container(CONTAINER_GRAPH_EDGE).upsert_item(doc)
+
+    async def vector_search(
+        self,
+        query_vector: list[float],
+        top_k: int = 5,
+        filters: dict | None = None,
+    ) -> list[dict]:
+        filters = filters or {}
+        where = ""
+        params = [
+            {"name": "@vec", "value": query_vector},
+            {"name": "@top", "value": top_k},
+        ]
+        if "node_type" in filters:
+            where = "WHERE c.node_type = @node_type "
+            params.append(
+                {"name": "@node_type", "value": filters["node_type"]}
+            )
+
+        sql = (
+            "SELECT TOP @top c.node_id, c.node_type, c.properties, "
+            "VectorDistance(c.embedding, @vec) AS score "
+            f"FROM c {where}"
+            "ORDER BY VectorDistance(c.embedding, @vec)"
+        )
+        results = []
+        async for item in self._container(CONTAINER_GRAPH_NODE).query_items(
+            query=sql, parameters=params
+        ):
+            results.append(item)
+        return results
+
+    async def graph_traverse(
+        self,
+        start_node_id: str,
+        depth: int = 1,
+        edge_types: list[str] | None = None,
+    ) -> dict:
+        try:
+            await self._container(CONTAINER_GRAPH_NODE).read_item(
+                item=start_node_id, partition_key=start_node_id
+            )
+        except ResourceNotFoundError:
+            return {"nodes": [], "edges": []}
+
+        visited = {start_node_id}
+        frontier = [start_node_id]
+        reached_edges: list[dict] = []
+        edge_container = self._container(CONTAINER_GRAPH_EDGE)
+
+        for _ in range(max(0, depth)):
+            if not frontier:
+                break
+            sql = "SELECT * FROM c WHERE ARRAY_CONTAINS(@frontier, c.source_id)"
+            params = [{"name": "@frontier", "value": frontier}]
+            if edge_types:
+                sql += " AND ARRAY_CONTAINS(@edge_types, c.edge_type)"
+                params.append({"name": "@edge_types", "value": edge_types})
+
+            next_frontier = []
+            async for edge in edge_container.query_items(
+                query=sql, parameters=params
+            ):
+                reached_edges.append(
+                    {
+                        "source_id": edge["source_id"],
+                        "target_id": edge["target_id"],
+                        "edge_type": edge["edge_type"],
+                        "weight": edge.get("weight", 1.0),
+                    }
+                )
+                tgt = edge["target_id"]
+                if tgt not in visited:
+                    visited.add(tgt)
+                    next_frontier.append(tgt)
+            frontier = next_frontier
+
+        reached_ids = [nid for nid in visited if nid != start_node_id]
+        nodes: list[dict] = []
+        if reached_ids:
+            sql = (
+                "SELECT c.node_id, c.node_type, c.properties FROM c "
+                "WHERE ARRAY_CONTAINS(@ids, c.node_id)"
+            )
+            params = [{"name": "@ids", "value": reached_ids}]
+            async for node in self._container(
+                CONTAINER_GRAPH_NODE
+            ).query_items(query=sql, parameters=params):
+                nodes.append(node)
+
+        return {"nodes": nodes, "edges": reached_edges}
 
     async def close(self) -> None:
         await self._client.close()
