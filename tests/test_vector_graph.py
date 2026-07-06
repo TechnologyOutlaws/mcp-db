@@ -294,13 +294,18 @@ class TestServerRegistersQueryGraph:
         assert "query_graph" in names
 
     @pytest.mark.asyncio
-    async def test_query_graph_schema_requires_query_vector(self):
+    async def test_query_graph_schema_exposes_intent_and_query_vector(self):
         import server
 
         tools = await server.list_tools()
         tool = next(t for t in tools if t.name == "query_graph")
-        assert "query_vector" in tool.inputSchema["properties"]
-        assert "query_vector" in tool.inputSchema["required"]
+        props = tool.inputSchema["properties"]
+        # spec contract: seed by text intent, precomputed vector, or seed node —
+        # so none is individually required.
+        assert "intent" in props
+        assert "query_vector" in props
+        assert "seed_node_id" in props
+        assert tool.inputSchema["required"] == []
 
     @pytest.mark.asyncio
     async def test_call_tool_routes_query_graph(self):

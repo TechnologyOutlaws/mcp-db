@@ -125,11 +125,14 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         from shared.tools.compound.query_graph import query_graph
 
         result = await query_graph(
-            query_vector=arguments["query_vector"],
+            intent=arguments.get("intent", ""),
+            query_vector=arguments.get("query_vector"),
+            seed_node_id=arguments.get("seed_node_id"),
             top_k=arguments.get("top_k", 5),
             depth=arguments.get("depth", 1),
             edge_types=arguments.get("edge_types"),
             node_type=arguments.get("node_type"),
+            vector_threshold=arguments.get("vector_threshold", 0.0),
             domain=arguments.get("domain", "general"),
             session_id=arguments.get("session_id", "anonymous"),
             db=_db,
@@ -256,23 +259,42 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="query_graph",
             description=(
-                "Vector-graph compound tool. One call: finds the most "
-                "semantically similar seed node by vector similarity, then "
-                "traverses its graph neighborhood to the requested depth. "
-                "Use instead of chaining a vector search with separate graph "
-                "traversal calls. Produces one attestation record covering "
-                "the vector hits and the assembled subgraph."
+                "Graph-aware vector query. One call: seed by semantic vector "
+                "similarity to a text `intent` (or a precomputed `query_vector`, "
+                "or an explicit `seed_node_id`), then traverse the graph "
+                "neighborhood to `depth`, merging subgraphs. Use instead of "
+                "chaining a vector search with separate graph traversal calls. "
+                "Produces one attestation record covering every node touched."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
+                    "intent": {
+                        "type": "string",
+                        "description": (
+                            "Text query; embedded to seed the search. Provide "
+                            "this OR query_vector OR seed_node_id."
+                        ),
+                    },
                     "query_vector": {
                         "type": "array",
                         "items": {"type": "number"},
-                        "description": "Query embedding vector",
+                        "description": "Precomputed query embedding (optional).",
+                    },
+                    "seed_node_id": {
+                        "type": "string",
+                        "description": (
+                            "Traverse from this node instead of vector-"
+                            "discovering seeds (optional)."
+                        ),
                     },
                     "top_k": {"type": "integer", "default": 5},
                     "depth": {"type": "integer", "default": 1},
+                    "vector_threshold": {
+                        "type": "number",
+                        "default": 0.0,
+                        "description": "Drop vector hits below this score.",
+                    },
                     "edge_types": {
                         "type": "array",
                         "items": {"type": "string"},
@@ -285,7 +307,7 @@ async def list_tools() -> list[types.Tool]:
                     "domain": {"type": "string", "default": "general"},
                     "session_id": {"type": "string", "default": "anonymous"},
                 },
-                "required": ["query_vector"],
+                "required": [],
             },
         ),
     ]

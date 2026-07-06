@@ -26,6 +26,22 @@ Contract (all async):
 from abc import ABC, abstractmethod
 
 
+class GraphNotSupportedError(RuntimeError):
+    """Raised when a backend does not implement the graph/vector path.
+
+    Keeps the narrow and compound (materialized-view) tools working on any
+    backend while the graph/vector path is additive: a backend can ship DB
+    support without graph support, and only ``query_graph`` is unavailable.
+    """
+
+    def __init__(self, variant: str):
+        super().__init__(
+            f"DB_VARIANT='{variant}' does not support the graph/vector path. "
+            "The narrow and compound tools work on this backend; only "
+            "query_graph is unavailable."
+        )
+
+
 class VectorGraphDB(ABC):
 
     @abstractmethod

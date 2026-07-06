@@ -61,7 +61,41 @@ Run the test suite:
 python -m pytest tests/ -v
 ```
 
-Expected: **91 tests, all green.**
+Expected: **126 tests, all green.**
+
+## Integration Path 3 — Graph / Vector
+
+`mcp-db` serves the same backend three ways. Narrow tools do point reads;
+compound tools return pre-assembled context in one call; and the graph/vector
+path traverses typed relationships combined with semantic similarity.
+
+The `query_graph` tool seeds by semantic similarity to a text `intent` (or an
+explicit `seed_node_id`, or a precomputed `query_vector`), then traverses the
+typed-edge neighbourhood and returns a connected subgraph — with one attestation
+record enumerating every node touched.
+
+```python
+from shared.tools.compound.query_graph import query_graph
+
+result = await query_graph(intent="acme's open invoices", depth=2)
+# -> { nodes, edges, paths, vector_hits, assembled_sources, attestation_record_id }
+```
+
+Domain-neutral model: node types `entity | record | event | knowledge_chunk`;
+edge types `relates_to | references | derived_from | cites | belongs_to`. The
+graph is populated from the same data the point-read tools already return.
+
+Embeddings are pluggable via `EMBED_PROVIDER` (`shared/embeddings.py`): the
+default `hash` provider is dependency-free and offline (the CI default), with
+`openai` and `local` (sentence-transformers) available as lazy, optional
+providers. `EMBED_DIM` keeps the query dimension aligned with the stored vectors.
+Vector similarity uses pure-Python cosine — no native extension, no cloud
+dependency, consistent with this repo's offline-first design.
+
+**Upgrade path:** `mcp-db` is the open, portable substrate. The same backend
+abstraction and tool surface can be wrapped by a compliance-hardening layer with
+attestation sealing for regulated workloads — the tool contract is preserved
+across the open and hardened variants.
 
 ## License
 

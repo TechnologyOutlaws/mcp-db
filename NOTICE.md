@@ -49,7 +49,20 @@ jt@technologyoutlaws.com
 
 ---
 
-## Defensive Publication
+## Defensive Publications
 
-A defensive publication establishing prior art for this pattern,
-dated 2026-04-26, is provided in [PRIOR_ART.md](./PRIOR_ART.md).
+Defensive publications establishing prior art are provided in
+[PRIOR_ART.md](./PRIOR_ART.md):
+
+1. **DB-Backed Compound Query Tier** (2026-04-26).
+2. **Graph-Aware Vector Query Path** (2026-07-05) — the open, portable
+   graph/vector integration path (`query_graph`), its domain-neutral
+   node/edge model, and its pluggable embeddings abstraction.
+
+The graph/vector path is **dedicated to the public domain** as prior art;
+it is not claimed as patented subject matter. The **compliance-hardened
+variant** — the attestation/compliance-frame sealing mechanism and its
+hardware-anchored trust layer — is **not contained in this repository**
+and is expressly reserved by Technology Outlaws LLC (built and specced in
+separate, non-public work). The open tool contract is preserved across the
+open and hardened variants.

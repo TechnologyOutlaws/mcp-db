@@ -342,3 +342,136 @@ this publication. This document is intended to establish prior art and prevent
 subsequent patent claims on the described methods and systems._
 
 _Publication date: 2026-04-26_
+
+---
+---
+
+# Defensive Publication II: Graph-Aware Vector Query Path for a Portable MCP Data Substrate
+
+**Publication Date:** 2026-07-05
+**Field:** Artificial Intelligence Infrastructure / Agent Retrieval / Knowledge Graphs
+**Keywords:** MCP, vector search, knowledge graph, graph traversal, hybrid retrieval,
+provenance, portable backend, embeddings abstraction, chain-of-custody
+**Reference Implementation:** https://github.com/TechnologyOutlaws/mcp-db (tag v0.2.0)
+
+---
+
+## I. TECHNICAL FIELD
+
+This disclosure extends the Compound Query Tier (Disclosure I) with a third,
+co-resident integration path: a graph-aware vector query surface embedded in the same
+MCP server, over the same pluggable backend. It is applicable to any AI agent runtime
+that retrieves context over MCP and to any application wanting a directly queryable
+vector/graph substrate behind the same tool surface.
+
+---
+
+## II. BACKGROUND
+
+Agent builders face a fork: MCP tool-call ergonomics OR a directly queryable
+vector/graph substrate — typically requiring separate systems, separate provenance
+models, and a hard migration when moving between embedded (development) and managed
+cloud (production) backends. Vector databases and graph databases are usually distinct
+services; combining semantic recall with relationship traversal ordinarily means
+wiring two systems and correlating their outputs in application code.
+
+---
+
+## III. SUMMARY OF THE DISCLOSURE
+
+A single database-backed MCP server exposes three co-resident integration paths over
+one pluggable, cloud-portable backend: (1) narrow point-read tools, (2) compound tools
+returning pre-assembled multi-source context in a single call (Disclosure I), and (3) a
+graph-aware vector query tool that combines semantic vector similarity with typed-edge
+graph traversal to return a connected context subgraph. All three share one backend
+abstraction implemented over embedded (SQLite) and managed cloud backends without
+changing the tool surface. Each compound-path invocation emits one provenance record
+enumerating every element assembled into the response.
+
+---
+
+## IV. DISCLOSED METHOD
+
+1. **Pluggable backend abstraction** selected at runtime that implements both a
+   record/point-read protocol and a graph/vector protocol comprising node upsert, edge
+   upsert, vector similarity search, and depth-bounded typed-edge traversal with
+   optional vector-similarity pruning of the traversal frontier. A backend may ship the
+   record protocol without the graph protocol; the graph tool then reports the path is
+   unavailable while the narrow/compound tools continue to function.
+2. **Domain-neutral graph model** (node types: `entity`, `record`, `event`,
+   `knowledge_chunk`; edge types: `relates_to`, `references`, `derived_from`, `cites`,
+   `belongs_to`) that maps onto the same data already served by the point-read tools, so
+   the graph is populated without a separate ingestion model.
+3. **A single graph-query tool operable in two modes** — explicit-seed traversal, and
+   vector-discovered-seed traversal — merging per-seed subgraphs into one connected
+   result with traversal paths retained for provenance.
+4. **A single provenance record per invocation** enumerating every node assembled into
+   the response (the `assembled_sources` manifest), enabling chain-of-custody over an
+   assembled subgraph rather than per element.
+5. **A pluggable embeddings abstraction** that turns a text query intent into a query
+   vector, with a dependency-free default provider (a deterministic hashing vectorizer)
+   so the substrate runs fully offline with no model download or API key, and optional
+   managed/local providers selected by configuration.
+6. **A documented upgrade path** wherein the same backend abstraction and tool surface
+   are wrapped by a compliance-hardening layer for regulated deployments, preserving the
+   tool contract across the open and hardened variants.
+
+---
+
+## V. CLAIMS OF NOVELTY (defensive publishing — not patent claims)
+
+1. A graph-aware vector query tool that seeds by semantic vector similarity and expands
+   by typed-edge graph traversal within a single attested MCP tool call.
+2. Two-mode seed selection (explicit seed node vs vector-discovered seeds) with per-seed
+   subgraphs merged into one connected result inside an MCP server.
+3. A single provenance record enumerating every node of an assembled subgraph for one
+   MCP graph-query call.
+4. A domain-neutral node/edge model populated from the same data served by the point-read
+   tools, unifying three query paths over one backend.
+5. A pluggable embeddings abstraction with a dependency-free default enabling offline
+   operation of an MCP vector/graph substrate.
+
+---
+
+## VI. WHAT THIS DISCLOSURE PREVENTS OTHERS FROM PATENTING
+
+By publishing this disclosure, the following combinations enter the prior art and
+cannot be the subject of a valid patent claim filed after this date:
+
+- Combining semantic vector seeding with typed-edge graph traversal in a single attested
+  MCP tool call
+- Two-mode (explicit vs vector-discovered seed) subgraph assembly merged into one MCP
+  result
+- A single provenance/attestation record enumerating every node of an assembled subgraph
+- A domain-neutral graph model populated from the same data served by point-read MCP tools
+- A pluggable embeddings abstraction enabling offline (dependency-free) operation of an
+  MCP vector/graph substrate
+- Any combination of the above across embedded and managed cloud backends without
+  changing the MCP tool surface
+
+---
+
+## VII. PORTABILITY AND RELATIONSHIP TO EXISTING WORK
+
+Reduced to practice over an embedded backend (SQLite with pure-Python cosine similarity
+over stored vectors and adjacency tables). Implementable over managed backends providing
+native or composed graph-plus-vector capability — e.g., document-store edges with a
+native vector-distance query, a single engine unifying graph and vector, or a graph store
+composed with a separate vector index. The tool surface is identical across backends.
+
+---
+
+## VIII. RESERVED — NOT DISCLOSED
+
+This publication does not disclose, and Technology Outlaws LLC does not dedicate to the
+public, the compliance-frame sealing mechanism, its attestation construction, or its
+hardware-anchored trust layer, which are reserved and are the subject of separate,
+non-public work. See [NOTICE.md](./NOTICE.md).
+
+---
+
+_Published for defensive purposes. All rights reserved to the extent not precluded by
+this publication. This document is intended to establish prior art and prevent
+subsequent patent claims on the described methods and systems._
+
+_Publication date: 2026-07-05_
